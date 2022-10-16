@@ -1,0 +1,338 @@
+﻿#import "PAT.Lib.PoVv2";
+#define N 6;	// number of nodes
+#define MINORITY 2;
+#define HALF 3;
+#define MAJORITY 4;
+
+//1-> {3,4}
+//2-> {3,6}
+//3-> {1,2}
+//4-> {1,6}
+//5-> {6}
+//6-> {2,4,5}
+
+//1
+channel C13 0;
+channel C31 0;
+
+channel C14 0;
+channel C41 0;
+
+//2
+channel C23 0;
+channel C32 0;
+
+channel C26 0;
+channel C62 0;
+
+//4
+channel C46 0;
+channel C64 0;
+
+//5
+channel C56 0;
+channel C65 0;
+
+
+var testVar;
+var threshold = 18;
+
+var isWinner1 = false;
+var isWinner2 = false;
+var isWinner3 = false;
+var isWinner4 = false;
+var isWinner5 = false;
+var isWinner6 = false;
+
+var node1CycleCount = 0;
+var node2CycleCount = 0;
+var node3CycleCount = 0;
+var node4CycleCount = 0;
+var node5CycleCount = 0;
+var node6CycleCount = 0;
+
+var nodesCycleCount[6];
+
+var keyCount1 = 0;
+
+var latestKey1 = -1;
+var latestKey2 = -1;
+var latestKey3 = -1;
+var latestKey4 = -1;
+var latestKey5 = -1;
+var latestKey6 = -1;
+
+var<MasterKey> masterKey1;
+var<MasterKey> masterKey2;
+var<MasterKey> masterKey3;
+var<MasterKey> masterKey4;
+var<MasterKey> masterKey5;
+var<MasterKey> masterKey6;
+
+var masterKeyIndex1;
+var masterKeyIndex2;
+var masterKeyIndex3;
+var masterKeyIndex4;
+var masterKeyIndex5;
+var masterKeyIndex6;
+
+var<CapturedKeys> capturedKeys1;
+var<CapturedKeys> capturedKeys2;
+var<CapturedKeys> capturedKeys3;
+var<CapturedKeys> capturedKeys4;
+var<CapturedKeys> capturedKeys5;
+var<CapturedKeys> capturedKeys6;
+
+var foundWinner=false;
+
+var dummyInput;
+
+//var Ismalicious1=false;
+//var Ismalicious2=false;
+//var Ismalicious3=false;
+//var Ismalicious4=false;
+//var Ismalicious5=false;
+//var Ismalicious6=false;
+
+var malicious[N];
+
+Initialize() = (initEvent{	masterKey1.AddKey(20); masterKey1.AddKey(17); masterKey1.AddKey(03); masterKey1.AddKey(05); masterKey1.AddKey(11);
+							masterKey1.AddKey(13); masterKey1.AddKey(04); masterKey1.AddKey(16); masterKey1.AddKey(02); masterKey1.AddKey(12);
+							masterKey1.AddKey(15); masterKey1.AddKey(08); masterKey1.AddKey(07); masterKey1.AddKey(09); masterKey1.AddKey(06);
+							masterKey1.AddKey(09); masterKey1.AddKey(18); masterKey1.AddKey(10); masterKey1.AddKey(01); masterKey1.AddKey(14);
+							
+							masterKey2.AddKey(18); masterKey2.AddKey(16); masterKey2.AddKey(17); masterKey2.AddKey(03); masterKey2.AddKey(09);
+							masterKey2.AddKey(15); masterKey2.AddKey(12); masterKey2.AddKey(10); masterKey2.AddKey(08); masterKey2.AddKey(13);
+							masterKey2.AddKey(07); masterKey2.AddKey(05); masterKey2.AddKey(19); masterKey2.AddKey(11); masterKey2.AddKey(01);
+							masterKey2.AddKey(02); masterKey2.AddKey(14); masterKey2.AddKey(06); masterKey2.AddKey(20); masterKey2.AddKey(04);
+							
+							masterKey3.AddKey(09); masterKey3.AddKey(14); masterKey3.AddKey(12); masterKey3.AddKey(02); masterKey3.AddKey(05);
+							masterKey3.AddKey(17); masterKey3.AddKey(16); masterKey3.AddKey(06); masterKey3.AddKey(03); masterKey3.AddKey(08);
+							masterKey3.AddKey(13); masterKey3.AddKey(19); masterKey3.AddKey(01); masterKey3.AddKey(08); masterKey3.AddKey(04);
+							masterKey3.AddKey(10); masterKey3.AddKey(07); masterKey3.AddKey(20); masterKey3.AddKey(15); masterKey3.AddKey(11);
+							
+							masterKey4.AddKey(01); masterKey4.AddKey(11); masterKey4.AddKey(04); masterKey4.AddKey(19); masterKey4.AddKey(09);
+							masterKey4.AddKey(8); masterKey4.AddKey(13); masterKey4.AddKey(12); masterKey4.AddKey(07); masterKey4.AddKey(16);
+							masterKey4.AddKey(05); masterKey4.AddKey(20); masterKey4.AddKey(02); masterKey4.AddKey(14); masterKey4.AddKey(17);
+							masterKey4.AddKey(18); masterKey4.AddKey(03); masterKey4.AddKey(15); masterKey4.AddKey(10); masterKey4.AddKey(06);
+							
+							masterKey5.AddKey(05); masterKey5.AddKey(20); masterKey5.AddKey(17); masterKey5.AddKey(19); masterKey5.AddKey(02);
+							masterKey5.AddKey(09); masterKey5.AddKey(15); masterKey5.AddKey(04); masterKey5.AddKey(01); masterKey5.AddKey(10);
+							masterKey5.AddKey(08); masterKey5.AddKey(07); masterKey5.AddKey(03); masterKey5.AddKey(12); masterKey5.AddKey(18);
+							masterKey5.AddKey(14); masterKey5.AddKey(13); masterKey5.AddKey(06); masterKey5.AddKey(16); masterKey5.AddKey(11);
+							
+							masterKey6.AddKey(11); masterKey6.AddKey(09); masterKey6.AddKey(18); masterKey6.AddKey(15); masterKey6.AddKey(01);
+							masterKey6.AddKey(03); masterKey6.AddKey(05); masterKey6.AddKey(16); masterKey6.AddKey(13); masterKey6.AddKey(19);
+							masterKey6.AddKey(02); masterKey6.AddKey(06); masterKey6.AddKey(12); masterKey6.AddKey(17); masterKey6.AddKey(20);
+							masterKey6.AddKey(08); masterKey6.AddKey(04); masterKey6.AddKey(10); masterKey6.AddKey(07); masterKey6.AddKey(14);} -> Skip);
+							
+							
+Reveal(i) =	[i==1] start_reveal.1{latestKey1 = masterKey1.RevealKey(masterKeyIndex1); if(masterKeyIndex1<19) {masterKeyIndex1++}; isWinner1 = capturedKeys1.AddKey(latestKey1,threshold);} -> Skip []
+			[i==2] start_reveal.2{latestKey2 = masterKey2.RevealKey(masterKeyIndex2); if(masterKeyIndex2<19) {masterKeyIndex2++}; isWinner2 = capturedKeys2.AddKey(latestKey2,threshold);} -> Skip []
+			[i==3] start_reveal.3{latestKey3 = masterKey3.RevealKey(masterKeyIndex3); if(masterKeyIndex3<19) {masterKeyIndex3++}; isWinner3 = capturedKeys3.AddKey(latestKey3,threshold);} -> Skip []
+			[i==4] start_reveal.4{latestKey4 = masterKey4.RevealKey(masterKeyIndex4); if(masterKeyIndex4<19) {masterKeyIndex4++}; isWinner4 = capturedKeys4.AddKey(latestKey4,threshold);} -> Skip []
+			[i==5] start_reveal.5{latestKey5 = masterKey5.RevealKey(masterKeyIndex5); if(masterKeyIndex5<19) {masterKeyIndex5++}; isWinner5 = capturedKeys5.AddKey(latestKey5,threshold);} -> Skip []
+			[i==6] start_reveal.6{latestKey6 = masterKey6.RevealKey(masterKeyIndex6); if(masterKeyIndex6<19) {masterKeyIndex6++}; isWinner6 = capturedKeys6.AddKey(latestKey6,threshold);} -> Skip; 
+
+			
+Send(i) = 	[i==1 && malicious[0]==0] ((C13!latestKey1 -> Skip) || (C14!latestKey1 -> Skip)) [] [i==1 && malicious[0]==1] (Skip)
+			[]
+			[i==2 && malicious[1]==0] ((C23!latestKey2 -> Skip) || (C26!latestKey2 -> Skip)) [] [i==2 && malicious[1]==1] (Skip)
+			[]
+			[i==3 && malicious[2]==0] ((C31!latestKey3 -> Skip) || (C32!latestKey3 -> Skip)) [] [i==3 && malicious[2]==1] (Skip)
+			[]
+			[i==4 && malicious[3]==0] ((C41!latestKey4 -> Skip) || (C46!latestKey4 -> Skip)) [] [i==4 && malicious[3]==1] (Skip)
+			[]
+			[i==5 && malicious[4]==0] ( C56!latestKey5 -> Skip) [] [i==5 && malicious[4]==1] (Skip)
+			[]
+			[i==6 && malicious[5]==0] ((C62!latestKey6 -> Skip) || (C64!latestKey6 -> Skip) || (C65!latestKey6 -> Skip)) [] [i==6 && malicious[5]==1] (Skip)
+			;
+
+
+Receive(i) =[i==1 && malicious[2]==0 && malicious[3]==0](
+						C31?y -> keyCapturedEvent31{latestKey1 = y; isWinner1 = capturedKeys1.AddKey(y,threshold)} -> Skip	||
+						C41?y -> keyCapturedEvent41{latestKey1 = y; isWinner1 = capturedKeys1.AddKey(y,threshold)} -> Skip
+			) []
+			[i==1 && malicious[2]==0 && malicious[3]==1](
+						C31?y -> keyCapturedEvent31{latestKey1 = y; isWinner1 = capturedKeys1.AddKey(y,threshold)} -> Skip
+			) []
+			[i==1 && malicious[2]==1 && malicious[3]==0](
+						C41?y -> keyCapturedEvent41{latestKey1 = y; isWinner1 = capturedKeys1.AddKey(y,threshold)} -> Skip
+			) []
+			[i==1 && malicious[2]==1 && malicious[3]==1](
+						Skip
+			)
+			
+			[]
+			
+ 			[i==2 && malicious[2]==0 && malicious[5]==0](
+	 					C32?y -> keyCapturedEvent32{latestKey2 = y; isWinner2 = capturedKeys2.AddKey(y,threshold)} -> Skip 	||
+	 					C62?y -> keyCapturedEvent62{latestKey2 = y; isWinner2 = capturedKeys2.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==2 && malicious[2]==0 && malicious[5]==1](
+	 					C32?y -> keyCapturedEvent32{latestKey2 = y; isWinner2 = capturedKeys2.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==2 && malicious[2]==1 && malicious[5]==0](
+	 					C62?y -> keyCapturedEvent62{latestKey2 = y; isWinner2 = capturedKeys2.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==2 && malicious[2]==1 && malicious[5]==1](
+	 					Skip
+ 			)
+ 			
+ 			[]
+ 			
+ 			[i==3 && malicious[0]==0 && malicious[1]==0](
+	 					C13?y -> keyCapturedEvent13{latestKey3 = y; isWinner3 = capturedKeys3.AddKey(y,threshold)} -> Skip 	||
+	 					C23?y -> keyCapturedEvent23{latestKey3 = y; isWinner3 = capturedKeys3.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==3 && malicious[0]==0 && malicious[1]==1](
+	 					C13?y -> keyCapturedEvent13{latestKey3 = y; isWinner3 = capturedKeys3.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==3 && malicious[0]==1 && malicious[1]==0](
+	 					C23?y -> keyCapturedEvent23{latestKey3 = y; isWinner3 = capturedKeys3.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==3 && malicious[0]==1 && malicious[1]==1](
+	 					Skip
+ 			)
+ 			
+ 			[]
+ 			
+ 			[i==4 && malicious[0]==0 && malicious[5]==0](
+	 					C14?y -> keyCapturedEvent14{latestKey4 = y; isWinner4 = capturedKeys4.AddKey(y,threshold)} -> Skip 	||
+	 					C64?y -> keyCapturedEvent64{latestKey4 = y; isWinner4 = capturedKeys4.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==4 && malicious[0]==0 && malicious[5]==1](
+	 					C14?y -> keyCapturedEvent14{latestKey4 = y; isWinner4 = capturedKeys4.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==4 && malicious[0]==1 && malicious[5]==0](
+	 					C64?y -> keyCapturedEvent64{latestKey4 = y; isWinner4 = capturedKeys4.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==4 && malicious[0]==1 && malicious[5]==1](
+	 					Skip
+ 			)
+ 			
+ 			[]
+ 			
+ 			[i==5 && malicious[5]==0](
+ 						C65?y -> keyCapturedEvent65{latestKey5 = y; isWinner5 = capturedKeys5.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==5 && malicious[5]==1](
+ 						Skip
+ 			)
+ 			
+ 			[]
+ 			
+ 			[i==6 && malicious[1]==0 && malicious[3]==0 && malicious[4]==0](
+	 					C26?y -> keyCapturedEvent26{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip 	||
+	 					C46?y -> keyCapturedEvent46{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip 	||
+	 					C56?y -> keyCapturedEvent56{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==0 && malicious[3]==0 && malicious[4]==1](
+	 					C26?y -> keyCapturedEvent26{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip 	||
+	 					C46?y -> keyCapturedEvent46{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==0 && malicious[3]==1 && malicious[4]==0](
+	 					C26?y -> keyCapturedEvent26{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip 	||
+	 					C56?y -> keyCapturedEvent56{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==0 && malicious[3]==1 && malicious[4]==1](
+	 					C26?y -> keyCapturedEvent26{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==1 && malicious[3]==0 && malicious[4]==0](
+	 					C46?y -> keyCapturedEvent46{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip 	||
+	 					C56?y -> keyCapturedEvent56{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==1 && malicious[3]==0 && malicious[4]==1](
+	 					C46?y -> keyCapturedEvent46{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==1 && malicious[3]==1 && malicious[4]==0](
+	 					C56?y -> keyCapturedEvent56{latestKey6 = y; isWinner6 = capturedKeys6.AddKey(y,threshold)} -> Skip
+ 			) []
+ 			[i==6 && malicious[1]==1 && malicious[3]==1 && malicious[4]==1](
+	 					Skip
+ 			)
+ 			;
+
+IncrementCycleCount(i) = incrementCycle.i{
+	nodesCycleCount[i-1]++;
+} -> Skip;
+
+
+SimulateMalicious(i) = {
+	var count = 5;
+	while (count >= i) {
+		if(malicious[count] == 0 ) {
+			malicious[count] = 1;
+			count --;
+		}
+	} 
+} -> Skip;
+
+BlockChain() = Initialize(); StartBroadcast();
+
+StartBroadcast() = (||x:{1..N}@ ( Reveal(x);IncrementCycleCount(x); (Send(x) || Receive(x) || IncrementCycleCount(x)); (Send(x) || Receive(x) || IncrementCycleCount(x)) ) ); StartBroadcast();
+
+BlockChainWithMinority() = SimulateMalicious(MINORITY); BlockChain();
+BlockChainWithHalf() = SimulateMalicious(HALF); BlockChain();
+BlockChainWithMajority() = SimulateMalicious(MAJORITY); BlockChain();
+
+#assert BlockChain() reaches consensusAchieved;
+#assert BlockChain() reaches forkOccured;
+#assert BlockChain() deadlockfree;
+
+
+#assert BlockChainWithMinority() reaches consensusAchieved;
+#assert BlockChainWithMinority() reaches forkOccured;
+#assert BlockChainWithMinority() deadlockfree;
+
+
+#assert BlockChainWithHalf() reaches consensusAchieved;
+#assert BlockChainWithHalf() reaches forkOccured;
+#assert BlockChainWithHalf() deadlockfree;
+
+
+#assert BlockChainWithMajority() reaches consensusAchieved;
+#assert BlockChainWithMajority() reaches forkOccured;
+#assert BlockChainWithMajority() deadlockfree;
+
+
+#define consensusAchieved (isWinner1==true || isWinner2==true || isWinner3==true ||  isWinner4==true || isWinner5==true || isWinner6==true);
+#define forkOccured ((isWinner1==true&&isWinner2==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner1==true&&isWinner3==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 (isWinner1==true&&isWinner4==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner1==true&&isWinner5==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner1==true&&isWinner6==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 
+					 (isWinner2==true&&isWinner1==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner2==true&&isWinner3==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 (isWinner2==true&&isWinner4==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner2==true&&isWinner5==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5])||
+					 (isWinner2==true&&isWinner6==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 
+					 (isWinner3==true&&isWinner1==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner3==true&&isWinner2==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 (isWinner3==true&&isWinner4==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner3==true&&isWinner5==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner3==true&&isWinner6==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 
+					 (isWinner4==true&&isWinner1==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner4==true&&isWinner2==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 (isWinner4==true&&isWinner3==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner4==true&&isWinner5==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner4==true&&isWinner6==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 
+					 (isWinner5==true&&isWinner1==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner5==true&&isWinner2==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 (isWinner5==true&&isWinner3==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner5==true&&isWinner4==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner5==true&&isWinner6==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 
+					 (isWinner6==true&&isWinner1==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner6==true&&isWinner2==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) || 
+					 (isWinner6==true&&isWinner3==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner6==true&&isWinner4==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]) ||
+					 (isWinner6==true&&isWinner5==true)&&(nodesCycleCount[0]==nodesCycleCount[1]==nodesCycleCount[2]==nodesCycleCount[3]==nodesCycleCount[4]==nodesCycleCount[5]));
+
+
+
+
