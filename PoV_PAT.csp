@@ -1,4 +1,4 @@
-﻿#import "PAT.Lib.PoVv2";
+﻿#import "PAT.Lib.PoV";
 #define N 6;	// number of nodes
 #define MINORITY 2;
 #define HALF 3;
